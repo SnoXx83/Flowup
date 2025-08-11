@@ -17,7 +17,7 @@ import { BlocsModule } from './blocs/blocs.module';
       password: 'nestpassword',
       database: 'nest_db',
       autoLoadEntities: true,
-      synchronize: true, // Mettez à 'false' en production !
+      synchronize: true, // Mettre à 'false' en production !
     }),
     UsersModule,
     ProjetsModule,

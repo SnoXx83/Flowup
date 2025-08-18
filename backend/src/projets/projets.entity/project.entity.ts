@@ -1,5 +1,5 @@
-import { PageEntity } from "src/pages/entities/page.entity/page.entity";
-import { UserEntity } from "src/users/entities/user.entity/user.entity";
+import { PageEntity } from "src/pages/pages.entity/page.entity";
+import { UserEntity } from "src/users/entities/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

@@ -1,5 +1,5 @@
-import { BlocEntity } from "src/blocs/entities/bloc.entity/bloc.entity";
-import { ProjectEntity } from "src/projets/entities/project.entity/project.entity";
+import { BlocEntity } from "src/blocs/bloc.entity/bloc.entity";
+import { ProjectEntity } from "src/projets/projets.entity/project.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

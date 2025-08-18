@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { PageEntity } from 'src/pages/entities/page.entity/page.entity';
+import { PageEntity } from 'src/pages/pages.entity/page.entity';
 
 @Entity()
 export class BlocEntity {

@@ -3,13 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { ProjetsModule } from './projets/projets.module';
+import { ProjectsModule } from './projects/projects.module';
 import { PagesModule } from './pages/pages.module';
 import { BlocsModule } from './blocs/blocs.module';
 import { BlocEntity } from './blocs/bloc.entity/bloc.entity';
 import { PageEntity } from './pages/pages.entity/page.entity';
-import { ProjectEntity } from './projets/projets.entity/project.entity';
-import { UserEntity } from './users/entities/user.entity';
+import { ProjectEntity } from './projects/projects.entity/project.entity';
+import { UserEntity } from './users/users.entity/user.entity';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { UserEntity } from './users/entities/user.entity';
       entities:[UserEntity, ProjectEntity, PageEntity, BlocEntity],
     }),
     UsersModule,
-    ProjetsModule,
+    ProjectsModule,
     PagesModule,
     BlocsModule,
   ],

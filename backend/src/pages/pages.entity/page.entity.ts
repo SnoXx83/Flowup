@@ -1,10 +1,10 @@
 import { BlocEntity } from "src/blocs/bloc.entity/bloc.entity";
-import { ProjectEntity } from "src/projets/projets.entity/project.entity";
+import { ProjectEntity } from "src/projects/projects.entity/project.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class PageEntity {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column()

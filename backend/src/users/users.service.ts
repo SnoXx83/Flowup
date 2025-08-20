@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from './users.entity/user.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -34,14 +34,17 @@ export class UsersService {
     }
 
     async deleteById(id: number) {
-        const deleteUser = this.usersRepository.delete(id);
+        const deleteUser = await this.usersRepository.delete(id);
+        if (deleteUser.affected === 0) {
+            throw new NotFoundException(`User with ID "${id}" not found.`);
+        }
     }
 
     async updateUser(id: number, userData: Partial<UserEntity>){
         const userToUpdate= await this.usersRepository.findOneBy({id});
 
         if(!userToUpdate){
-            throw new Error("User not found !");
+            throw new NotFoundException("User not found !");
         }
 
         // copie les nouvelles données dans l'objet existant

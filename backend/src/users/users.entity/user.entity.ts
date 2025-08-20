@@ -1,5 +1,5 @@
 import { PageEntity } from "src/pages/pages.entity/page.entity";
-import { ProjectEntity } from "src/projets/projets.entity/project.entity";
+import { ProjectEntity } from "src/projects/projects.entity/project.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

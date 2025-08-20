@@ -3,8 +3,8 @@ import { PageEntity } from 'src/pages/pages.entity/page.entity';
 
 @Entity()
 export class BlocEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   type: string;

@@ -1,10 +1,10 @@
 import { PageEntity } from "src/pages/pages.entity/page.entity";
-import { UserEntity } from "src/users/entities/user.entity";
+import { UserEntity } from "src/users/users.entity/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class ProjectEntity {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
@@ -13,13 +13,10 @@ export class ProjectEntity {
     @Column()
     description: string;
 
-    @Column()
-    dateOfCreation: string;
+    @Column({ nullable: true })
+    dateOfCreation: Date;
 
-    @Column()
-    creator: string;
-
-    @Column()
+    @Column({ nullable: true })
     members: string;
 
     @ManyToOne(() => UserEntity, (user) => user.projects)

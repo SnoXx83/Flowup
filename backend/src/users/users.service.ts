@@ -10,10 +10,10 @@ export class UsersService {
         private usersRepository: Repository<UserEntity>,
     ) { }
 
-    async findAll(): Promise<UserEntity[]>{
-        const allUsers= this.usersRepository.find();
+    async findAll(): Promise<UserEntity[]> {
+        const allUsers = this.usersRepository.find();
 
-        if(!allUsers){
+        if (!allUsers) {
             throw new Error("User not found !");
         }
 
@@ -33,6 +33,11 @@ export class UsersService {
         return user;
     }
 
+    async findOneByEmail(email: string): Promise<UserEntity | null> {
+        const user = await this.usersRepository.findOne({ where: { email } })
+        return user || null;
+    }
+
     async deleteById(id: number) {
         const deleteUser = await this.usersRepository.delete(id);
         if (deleteUser.affected === 0) {
@@ -40,17 +45,17 @@ export class UsersService {
         }
     }
 
-    async updateUser(id: number, userData: Partial<UserEntity>){
-        const userToUpdate= await this.usersRepository.findOneBy({id});
+    async updateUser(id: number, userData: Partial<UserEntity>) {
+        const userToUpdate = await this.usersRepository.findOneBy({ id });
 
-        if(!userToUpdate){
+        if (!userToUpdate) {
             throw new NotFoundException("User not found !");
         }
 
         // copie les nouvelles données dans l'objet existant
         Object.assign(userToUpdate, userData);
 
-        const updatedUser= await this.usersRepository.save(userToUpdate);
+        const updatedUser = await this.usersRepository.save(userToUpdate);
 
         return updatedUser;
     }

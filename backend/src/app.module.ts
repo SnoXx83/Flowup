@@ -10,6 +10,7 @@ import { BlocEntity } from './blocs/bloc.entity/bloc.entity';
 import { PageEntity } from './pages/pages.entity/page.entity';
 import { ProjectEntity } from './projects/projects.entity/project.entity';
 import { UserEntity } from './users/users.entity/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserEntity } from './users/users.entity/user.entity';
     ProjectsModule,
     PagesModule,
     BlocsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

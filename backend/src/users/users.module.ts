@@ -8,6 +8,7 @@ import { ProjectEntity } from 'src/projects/projects.entity/project.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity, ProjectEntity])],
   providers: [UsersService],
-  controllers: [UsersController]
+  controllers: [UsersController],
+  exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

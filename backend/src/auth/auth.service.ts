@@ -11,7 +11,7 @@ export class AuthService {
     ) { }
 
     // Inscription d'un user
-    async register(registerPayload: { name: string; email: string; password: string }) {
+    async register(registerPayload: { firstname: string; lastname: string; email: string; password: string; imageUrl: string; }) {
         const existingUser = await this.usersService.findOneByEmail(registerPayload.email);
         if (existingUser) {
             throw new BadRequestException('Email already exists');

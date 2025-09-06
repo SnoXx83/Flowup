@@ -13,9 +13,7 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() loginUserDto: LoginUserDto) {
-        // Logique de verification de mot de passe à implementer
-        // Pour l'instant, juste l'email sera utilisé pour le login
-
+        // implémentation de la verif du password
         return this.authService.login(loginUserDto.email, loginUserDto.password);
     }
 }

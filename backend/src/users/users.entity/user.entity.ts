@@ -19,7 +19,7 @@ export class UserEntity {
     @Column()
     password: string;
 
-    @Column()
+    @Column({nullable: true})
     imageUrl: string;
 
     @OneToMany(() => ProjectEntity, (project) => project.user)

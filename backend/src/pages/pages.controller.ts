@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
 import { PagesService } from './pages.service';
 import { PageEntity } from './pages.entity/page.entity';
 
-@Controller('pages')
+@Controller('tasks')
 export class PagesController {
     constructor(private readonly pagesService: PagesService) { }
 

@@ -13,7 +13,6 @@ export class AuthController {
 
     @Post('login')
     async login(@Body() loginUserDto: LoginUserDto) {
-        // implémentation de la verif du password
         return this.authService.login(loginUserDto.email, loginUserDto.password);
     }
 }

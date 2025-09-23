@@ -34,13 +34,13 @@ export class AuthService {
         const user = await this.usersService.findOneByEmail(email);
 
         if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Email doesn\'t exist');
         }
 
         // Compare le mot de passe fourni avec le hash stocké dans la BDD
         const isMatch = await bcrypt.compare(pass, user.password);
         if (!isMatch) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('The password is incorrect');
         }
 
         // Si les mots de passe correspondent, génère et retourne le token

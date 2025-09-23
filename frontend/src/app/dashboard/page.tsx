@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/services/api';
 import { useRouter } from 'next/navigation';
+import Modal from '@/components/common/Modal';
+import ProjectForm from '@/components/dashboard/ProjectForm';
 
 interface Project {
   id: number;
@@ -23,28 +25,64 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+  const fetchData = async () => {
+    try {
+      setDataLoading(true);
+      const projectsResponse = await api.get('/projects');
+      setProjects(projectsResponse.data);
+      const tasksResponse = await api.get('/tasks');
+      setTasks(tasksResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchData = async () => {
-        try {
-          // Fetch projects
-          const projectsResponse = await api.get('/projects');
-          setProjects(projectsResponse.data);
-
-          // Fetch tasks
-          const tasksResponse = await api.get('/tasks');
-          setTasks(tasksResponse.data);
-
-        } catch (error) {
-          console.error('Failed to fetch data:', error);
-        } finally {
-          setDataLoading(false);
-        }
-      };
       fetchData();
     }
   }, [isAuthenticated]);
+
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleProjectCreation = () => {
+    fetchData(); // Refresh the data after a project is created
+  };
+
+
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     const fetchData = async () => {
+  //       try {
+  //         // Fetch projects
+  //         const projectsResponse = await api.get('/projects');
+  //         setProjects(projectsResponse.data);
+
+  //         // Fetch tasks
+  //         const tasksResponse = await api.get('/tasks');
+  //         setTasks(tasksResponse.data);
+
+  //       } catch (error) {
+  //         console.error('Failed to fetch data:', error);
+  //       } finally {
+  //         setDataLoading(false);
+  //       }
+  //     };
+  //     fetchData();
+  //   }
+  // }, [isAuthenticated]);
 
   const handleCreateProject = () => {
     // Navigate to a new page to create a project
@@ -77,7 +115,7 @@ export default function DashboardPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">Your Projects</h1>
         <button
-          onClick={handleCreateProject}
+          onClick={handleOpenModal}
           className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-blue-700 transition-colors"
         >
           Add New Project
@@ -112,6 +150,10 @@ export default function DashboardPage() {
       ) : (
         <p className="text-center text-gray-500">You don't have any tasks yet.</p>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Create New Project">
+        <ProjectForm onSuccess={handleProjectCreation} onClose={handleCloseModal} />
+      </Modal>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable, OnDragEndResponder, DropResult }
 import Modal from '@/components/common/Modal';
 import TaskForm from '@/components/dashboard/TaskForm';
 import { KanbanColumn, KanbanState, Task } from '../types/kaban';
+import { FaTrashAlt } from 'react-icons/fa';
 
 const columnStatuses = ['À faire', 'En cours', 'À recetter', 'Mise en production', 'Terminé'];
 
@@ -77,6 +78,28 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
     });
   };
 
+  const handleTaskDeletion = async (taskId: string | number) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/tasks/${taskId}`);
+
+      // Mettez à jour l'état en filtrant la tâche supprimée
+      setKanbanState(prevState => {
+        const newColumns = { ...prevState.columns };
+        for (const status in newColumns) {
+          newColumns[status].tasks = newColumns[status].tasks.filter(task => task.id !== taskId);
+        }
+        return { columns: newColumns };
+      });
+
+    } catch (error) {
+      console.error("Échec de la suppression de la tâche :", error);
+    }
+  };
+
 
   const onDragEnd: OnDragEndResponder = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -89,22 +112,22 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
     const originalState = { ...kanbanState };
 
     if (source.droppableId === destination.droppableId) {
-        const newTasks = Array.from(start.tasks);
-        const [movedTask] = newTasks.splice(source.index, 1);
-        newTasks.splice(destination.index, 0, movedTask);
+      const newTasks = Array.from(start.tasks);
+      const [movedTask] = newTasks.splice(source.index, 1);
+      newTasks.splice(destination.index, 0, movedTask);
 
-        const newColumn = {
-            ...start,
-            tasks: newTasks,
-        };
+      const newColumn = {
+        ...start,
+        tasks: newTasks,
+      };
 
-        setKanbanState(prevState => ({
-            columns: {
-                ...prevState.columns,
-                [newColumn.title]: newColumn,
-            },
-        }));
-        return;
+      setKanbanState(prevState => ({
+        columns: {
+          ...prevState.columns,
+          [newColumn.title]: newColumn,
+        },
+      }));
+      return;
     }
 
 
@@ -137,7 +160,13 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
     }
   };
 
-  const handleOpenModal = () => setIsModalOpen(true);
+  const [currentStatus, setCurrentStatus] = useState<string>('À faire');
+
+  const handleOpenModal = (status: string) => {
+    setCurrentStatus(status);
+    setIsModalOpen(true);
+  };
+
   const handleCloseModal = () => setIsModalOpen(false);
 
   return (
@@ -154,13 +183,13 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{status}</h2>
-                    {status === 'À faire' && (
-                      <button onClick={handleOpenModal} className="text-gray-500 hover:text-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                      </button>
-                    )}
+                    {/* {status === 'À faire' && ( */}
+                    <button onClick={() => handleOpenModal(status)} className="text-gray-500 hover:text-gray-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </button>
+                    {/* )} */}
                   </div>
                   {kanbanState.columns?.[status]?.tasks.map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
@@ -169,9 +198,19 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-md mb-3 cursor-grab text-gray-900 dark:text-gray-50 transition-transform hover:scale-105"
+                          className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-md mb-3 cursor-grab text-gray-900 dark:text-gray-50 transition-transform hover:scale-105 group"
                         >
-                          <h3 className="font-medium">{task.title}</h3>
+                          <div className="flex justify-between">
+                            <h3 className="font-medium">{task.title}</h3>
+                            <div className='group-hover:block'>
+                              <button
+                                onClick={() => handleTaskDeletion(task.id)}
+                                className="text-gray-400"
+                              >
+                                <FaTrashAlt />
+                              </button>
+                            </div>
+                          </div>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{task.description}</p>
                         </div>
                       )}
@@ -189,6 +228,7 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
           onSuccess={handleTaskCreation}
           onClose={handleCloseModal}
           projectId={projectId}
+          initialStatus={currentStatus}
         />
       </Modal>
     </>

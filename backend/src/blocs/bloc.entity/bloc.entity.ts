@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { TaskEntity } from 'src/tasks/tasks.entity/tasks.entity';
+
+
 @Entity()
 export class BlocEntity {
   @PrimaryGeneratedColumn()
@@ -14,6 +16,6 @@ export class BlocEntity {
   @Column({ default: 0 })
   order: number;
 
-  @ManyToOne(() => TaskEntity, (task) => task.blocs)
+  @ManyToOne(() => TaskEntity, (task) => task.blocs, { onDelete: "CASCADE" })
   task: TaskEntity;
 }

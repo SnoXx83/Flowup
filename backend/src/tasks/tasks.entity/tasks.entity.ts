@@ -21,6 +21,6 @@ export class TaskEntity {
     @ManyToOne(() => ProjectEntity, (project) => project.tasks)
     project: ProjectEntity;
 
-    @OneToMany(() => BlocEntity, (bloc) => bloc.task)
+    @OneToMany(() => BlocEntity, (bloc) => bloc.task, {onDelete: 'CASCADE'})
     blocs: BlocEntity[];
 }

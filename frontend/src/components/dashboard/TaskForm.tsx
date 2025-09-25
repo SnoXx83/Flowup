@@ -12,13 +12,15 @@ interface TaskFormProps {
     onSuccess: (newTask: any) => void;
     onClose: () => void;
     projectId: number;
+    initialStatus: string;
 }
 
-export default function TaskForm({ onSuccess, onClose, projectId }: TaskFormProps) {
+export default function TaskForm({ onSuccess, onClose, projectId, initialStatus }: TaskFormProps) {
     const [title, setTitle] = useState('');
     const [blocks, setBlocks] = useState<Bloc[]>([{ type: 'text', content: '' }]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [status, setStatus] = useState(initialStatus);
 
     const handleBlockChange = (index: number, content: string) => {
         const newBlocks = [...blocks];
@@ -40,7 +42,7 @@ export default function TaskForm({ onSuccess, onClose, projectId }: TaskFormProp
         setError('');
 
         try {
-            const response = await api.post(`/tasks/${projectId}`, { title, blocs: blocks });
+            const response = await api.post(`/tasks/${projectId}`, { title, blocs: blocks,status });
             onSuccess(response.data);
             onClose();
         } catch (err: any) {

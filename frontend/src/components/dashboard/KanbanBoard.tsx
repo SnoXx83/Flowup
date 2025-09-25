@@ -86,8 +86,29 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
     }
 
     const start = kanbanState.columns[source.droppableId];
-    const finish = kanbanState.columns[destination.droppableId];
     const originalState = { ...kanbanState };
+
+    if (source.droppableId === destination.droppableId) {
+        const newTasks = Array.from(start.tasks);
+        const [movedTask] = newTasks.splice(source.index, 1);
+        newTasks.splice(destination.index, 0, movedTask);
+
+        const newColumn = {
+            ...start,
+            tasks: newTasks,
+        };
+
+        setKanbanState(prevState => ({
+            columns: {
+                ...prevState.columns,
+                [newColumn.title]: newColumn,
+            },
+        }));
+        return;
+    }
+
+
+    const finish = kanbanState.columns[destination.droppableId];
     const startTasks = Array.from(start.tasks);
     const finishTasks = Array.from(finish.tasks);
 

@@ -4,10 +4,10 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
-import { PagesModule } from './pages/pages.module';
+import { TasksModule } from './tasks/tasks.module';
 import { BlocsModule } from './blocs/blocs.module';
 import { BlocEntity } from './blocs/bloc.entity/bloc.entity';
-import { PageEntity } from './pages/pages.entity/page.entity';
+import { TaskEntity } from './tasks/tasks.entity/tasks.entity';
 import { ProjectEntity } from './projects/projects.entity/project.entity';
 import { UserEntity } from './users/users.entity/user.entity';
 import { AuthModule } from './auth/auth.module';
@@ -23,11 +23,11 @@ import { AuthModule } from './auth/auth.module';
       database: 'nest_db',
       autoLoadEntities: true,
       synchronize: true, // Mettre à 'false' en production !
-      entities:[UserEntity, ProjectEntity, PageEntity, BlocEntity],
+      entities:[UserEntity, ProjectEntity, TaskEntity, BlocEntity],
     }),
     UsersModule,
     ProjectsModule,
-    PagesModule,
+    TasksModule,
     BlocsModule,
     AuthModule,
   ],

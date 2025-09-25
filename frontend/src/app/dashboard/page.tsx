@@ -58,36 +58,29 @@ export default function DashboardPage() {
   };
 
   const handleProjectCreation = () => {
-    fetchData(); // Refresh the data after a project is created
+    fetchData();
   };
 
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     const fetchData = async () => {
-  //       try {
-  //         // Fetch projects
-  //         const projectsResponse = await api.get('/projects');
-  //         setProjects(projectsResponse.data);
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchData = async () => {
+        try {
+          const projectsResponse = await api.get('/projects');
+          setProjects(projectsResponse.data);
 
-  //         // Fetch tasks
-  //         const tasksResponse = await api.get('/tasks');
-  //         setTasks(tasksResponse.data);
+          const tasksResponse = await api.get('/tasks');
+          setTasks(tasksResponse.data);
 
-  //       } catch (error) {
-  //         console.error('Failed to fetch data:', error);
-  //       } finally {
-  //         setDataLoading(false);
-  //       }
-  //     };
-  //     fetchData();
-  //   }
-  // }, [isAuthenticated]);
-
-  const handleCreateProject = () => {
-    // Navigate to a new page to create a project
-    router.push('/dashboard/projects/create');
-  };
+        } catch (error) {
+          console.error('Failed to fetch data:', error);
+        } finally {
+          setDataLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -111,7 +104,6 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Projects Section */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">Your Projects</h1>
         <button
@@ -135,7 +127,6 @@ export default function DashboardPage() {
         <p className="text-center text-gray-500 mb-12">You don't have any projects yet.</p>
       )}
 
-      {/* Tasks Section */}
       <h1 className="text-4xl font-bold mb-6">Your Tasks</h1>
 
       {tasks.length > 0 ? (

@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { PageEntity } from 'src/pages/pages.entity/page.entity';
-
+import { TaskEntity } from 'src/tasks/tasks.entity/tasks.entity';
 @Entity()
 export class BlocEntity {
   @PrimaryGeneratedColumn()
@@ -15,6 +14,6 @@ export class BlocEntity {
   @Column({ default: 0 })
   order: number;
 
-  @ManyToOne(() => PageEntity, (page) => page.blocs)
-  page: PageEntity;
+  @ManyToOne(() => TaskEntity, (task) => task.blocs)
+  task: TaskEntity;
 }

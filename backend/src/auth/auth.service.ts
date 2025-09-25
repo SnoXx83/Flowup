@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { UserEntity } from 'src/users/users.entity/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -9,6 +10,17 @@ export class AuthService {
         private usersService: UsersService,
         private jwtService: JwtService,
     ) { }
+
+
+        async validateUser(email: string): Promise<UserEntity | null> {
+    const user = await this.usersService.findOneByEmail(email);
+    
+    // Si l'utilisateur est trouvé, retournez-le, sinon retournez null.
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
 
     // Inscription d'un user
     async register(registerPayload: { firstname: string; lastname: string; email: string; password: string; imageUrl: string; }) {

@@ -1,4 +1,4 @@
-import { PageEntity } from "src/pages/pages.entity/page.entity";
+import { TaskEntity } from "src/tasks/tasks.entity/tasks.entity";
 import { ProjectEntity } from "src/projects/projects.entity/project.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -25,6 +25,6 @@ export class UserEntity {
     @OneToMany(() => ProjectEntity, (project) => project.user)
     projects: ProjectEntity[];
 
-    @OneToMany(() => PageEntity, (page) => page.project)
-    pages: PageEntity[];
+    @OneToMany(() => TaskEntity, (task) => task.project)
+    tasks: TaskEntity[];
 }

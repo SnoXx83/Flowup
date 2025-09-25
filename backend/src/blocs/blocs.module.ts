@@ -3,13 +3,19 @@ import { BlocsService } from './blocs.service';
 import { BlocsController } from './blocs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlocEntity } from './bloc.entity/bloc.entity';
-import { PageEntity } from 'src/pages/pages.entity/page.entity';
+import { TaskEntity } from 'src/tasks/tasks.entity/tasks.entity';
+import { ProjectEntity } from 'src/projects/projects.entity/project.entity';
 
 @Module({
   imports: [
-          TypeOrmModule.forFeature([BlocEntity, PageEntity]),
-      ],
+    TypeOrmModule.forFeature([BlocEntity, TaskEntity, ProjectEntity]),
+    BlocsModule,
+  ],
   providers: [BlocsService],
-  controllers: [BlocsController]
+  controllers: [BlocsController],
+  exports: [
+    TypeOrmModule,
+    BlocsService,
+  ],
 })
 export class BlocsModule {}

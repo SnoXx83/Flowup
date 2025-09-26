@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex justify-center items-center min-h-screen bg-gray-100 ">
         Loading...
       </div>
     );
@@ -103,7 +103,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200 mx-auto p-25 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-4xl font-bold">Your Projects</h1>
         <button
@@ -117,9 +117,9 @@ export default function DashboardPage() {
       {projects.length > 0 ? (
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {projects.map((project) => (
-            <li key={project.id} className="bg-white p-6 rounded-lg shadow-md">
+            <li key={project.id} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold">{project.name}</h2>
-              <p className="mt-2 text-gray-600">{project.description}</p>
+              <p className="mt-2 text-gray-400">{project.description}</p>
             </li>
           ))}
         </ul>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
       {tasks.length > 0 ? (
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tasks.map((task) => (
-            <li key={task.id} className="bg-white p-6 rounded-lg shadow-md">
+            <li key={task.id} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold">{task.title}</h2>
               <p className="mt-2 text-gray-600">{task.description}</p>
             </li>

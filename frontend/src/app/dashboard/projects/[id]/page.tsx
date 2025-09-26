@@ -42,9 +42,16 @@ export default function ProjectPage() {
     }
 
     return (
-        <div className="p-8">
-            <h1 className="text-3xl font-bold mb-6">{project.name}</h1>
-            <p className="text-gray-600 mb-8">{project.description}</p>
+        <div className="p-10 bg-white dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-200" >
+            <div className='dark:bg-gray-800 border border-gray-700 rounded-lg p-5 mb-10'>
+                <h1 className="text-5xl font-bold mb-5">{project.name}</h1>
+                <h2 className='text-xl mb-2'>Description : </h2>
+                <p className="text-gray-400 mb-8">{project.description}</p>
+            </div>
+            <div className=' border border-gray-700 flex items-center justify-between bg-gray-800 rounded-lg p-2 mb-2'>
+                <h2 className='text-xl font-bold p-2'>Tasks</h2>
+                <button className='bg-gray-700 p-2 rounded-lg cursor-pointer'>Ajouter une tâche</button>
+            </div>
             <KanbanBoard initialTasks={tasks} projectId={Number(id)} />
         </div>
     );

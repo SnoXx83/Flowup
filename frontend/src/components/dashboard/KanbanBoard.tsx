@@ -172,14 +172,14 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex space-x-4 overflow-x-auto">
+        <div className="flex space-x-4 p-4">
           {columnStatuses.map(status => (
-            <Droppable key={status} droppableId={status}>
+            <Droppable key={status} droppableId={status} >
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg flex-shrink-0 w-72 h-full min-h-[500px]"
+                  className="dark:bg-gray-800 border border-gray-700 p-4 rounded-lg flex-shrink-0 w-72 h-full min-h-[500px]"
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{status}</h2>
@@ -198,11 +198,11 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-md mb-3 cursor-grab text-gray-900 dark:text-gray-50 transition-transform hover:scale-105 group"
+                          className="bg-white border border-gray-900 dark:bg-gray-700 p-4 rounded-lg shadow-md mb-3 cursor-grab text-gray-900 dark:text-gray-50 transition-transform hover:scale-105 group"
                         >
                           <div className="flex justify-between">
                             <h3 className="font-medium">{task.title}</h3>
-                            <div className='group-hover:block'>
+                            <div className='group-hover:block '>
                               <button
                                 onClick={() => handleTaskDeletion(task.id)}
                                 className="text-gray-400"

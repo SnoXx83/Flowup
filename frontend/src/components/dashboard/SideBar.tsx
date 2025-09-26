@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-full bg-white shadow-lg p-6 flex flex-col justify-between transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'}`}
+            className={`fixed border-r border-gray-700 left-0 top-0 h-full text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-900 min-h-screen shadow-lg p-6 flex flex-col justify-between transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'}`}
         >
             {/* Toggle Button */}
             <div className="absolute top-4 right-4 cursor-pointer" onClick={toggleSidebar}>
@@ -64,11 +64,16 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             {/* Navigation Links with Submenus */}
             <nav className="flex-1 mt-8">
                 <ul className="space-y-2">
+                    <li>
+                        <a href="/dashboard" className="flex items-center p-3 hover:bg-gray-700 rounded-lg">
+                            {isOpen && 'Accueil'}
+                        </a>
+                    </li>
                     {/* Projects Menu Item */}
                     <li>
                         <button
                             onClick={() => toggleMenu('projects')}
-                            className="flex items-center p-3 w-full"
+                            className="flex items-center p-3 w-full cursor-pointer hover:bg-gray-700 rounded-lg"
                         >
                             {isOpen && 'Projets'}
                         </button>
@@ -79,7 +84,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                                 ) : projects.length > 0 ? (
                                     projects.map((project: any) => (
                                         <li key={project.id}>
-                                            <a href={`/dashboard/projects/${project.id}`} className="block p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                                            <a href={`/dashboard/projects/${project.id}`} className="block p-2 text-sm text-gray-400 hover:bg-gray-700 rounded-lg">
                                                 {project.name}
                                             </a>
                                         </li>
@@ -95,7 +100,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                     <li>
                         <button
                             onClick={() => toggleMenu('tasks')}
-                            className="flex items-center p-3 w-full"
+                            className="flex items-center p-3 w-full cursor-pointer hover:bg-gray-700 rounded-lg"
                         >
                             {isOpen && 'Tâches'}
                         </button>
@@ -120,12 +125,12 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
                     {/* Other static links */}
                     <li>
-                        <a href="/dashboard/profile" className="flex items-center p-3">
+                        <a href="/dashboard/profile" className="flex items-center p-3 hover:bg-gray-700 rounded-lg">
                             {isOpen && 'Profil'}
                         </a>
                     </li>
                     <li>
-                        <a href="/dashboard/settings" className="flex items-center p-3">
+                        <a href="/dashboard/settings" className="flex items-center p-3 hover:bg-gray-700 rounded-lg">
                             {isOpen && 'Paramètres'}
                         </a>
                     </li>

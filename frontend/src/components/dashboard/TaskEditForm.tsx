@@ -1,27 +1,36 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '@/services/api';
+import { Task, Bloc } from '../types/kaban';
 
-interface Bloc {
-    type: 'text' | 'title';
-    content: string;
-}
 
-interface TaskFormProps {
-    onSuccess: (newTask: any) => void;
+type TaskWithBlocs = Task & { blocs: Bloc[] };
+
+interface TaskEditFormProps {
+    task: TaskWithBlocs
+    onUpdate: (updatedTask: Task) => void;
     onClose: () => void;
-    projectId: number;
-    initialStatus: string;
 }
 
-export default function TaskForm({ onSuccess, onClose, projectId, initialStatus }: TaskFormProps) {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [blocks, setBlocks] = useState<Bloc[]>([{ type: 'text', content: '' }]);
+const columnStatuses = ['À faire', 'En cours', 'À recetter', 'Mise en production', 'Terminé'];
+
+export default function TaskEditForm({ task, onUpdate, onClose }: TaskEditFormProps) {
+    const [title, setTitle] = useState(task.title);
+    const [blocks, setBlocks] = useState<Bloc[]>(task.blocs || [{ type: 'text', content: '' }]);
+    const [status, setStatus] = useState(task.status);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [status, setStatus] = useState(initialStatus);
+
+
+    useEffect(() => {
+        setTitle(task.title || '');
+        setStatus(task.status || columnStatuses[0]);
+        setBlocks((task.blocs || []).map(b => ({
+            ...b,
+            content: b.content ?? '',
+        })));
+    }, [task]);
 
     const handleBlockChange = (index: number, content: string) => {
         const newBlocks = [...blocks];
@@ -47,18 +56,17 @@ export default function TaskForm({ onSuccess, onClose, projectId, initialStatus 
         setError('');
 
         try {
-            const dataToSend = {
+            console.log(title);
+            const response = await api.patch(`/tasks/${task.id}`, {
                 title,
-                description,
-                status,
-                projectId,
-                blocs: blocks.filter(b => b.content.trim() !== ''),
-            };
-            const response = await api.post(`/tasks/${projectId}`, dataToSend);
-            onSuccess(response.data);
-            onClose();
+                blocs: blocks,
+                status
+            });
+
+            onUpdate(response.data);
+
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to create task.');
+            setError(err.response?.data?.message || 'Failed to update task.');
         } finally {
             setLoading(false);
         }
@@ -66,7 +74,7 @@ export default function TaskForm({ onSuccess, onClose, projectId, initialStatus 
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <h1 className="text-4xl font-bold mb-10 text-gray-900 dark:text-white">
+            <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
                 <input
                     type="text"
                     value={title}
@@ -76,31 +84,27 @@ export default function TaskForm({ onSuccess, onClose, projectId, initialStatus 
                     required
                 />
             </h1>
-
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={2}
-                    className="w-full bg-transparent outline-none border-none placeholder-gray-400 dark:placeholder-gray-600"
-                    placeholder="Description de la tâche"
-                    style={{ minHeight: '2.5rem' }}
-                    onInput={(e) => {
-                        e.currentTarget.style.height = 'auto';
-                        e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                    }}
-                />
-            </h2>
-
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">Contenu de la tâche :</h3>
+            <div className="mb-4">
+                <label htmlFor="status" className="block text-gray-700 text-sm font-bold mb-2 dark:text-gray-200">Statut</label>
+                <select
+                    id="status"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+                >
+                    {columnStatuses.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                    ))}
+                </select>
+            </div>
 
             {blocks.map((block, index) => (
-                <div key={index} className="relative group">
-                    <div className="absolute top-0 right-full mr-2 group-hover:block z-10">
+                <div key={block.id || index} className="relative group">
+                    <div className="absolute top-0 right-full mr-2 hidden group-hover:block">
                         <button
                             type="button"
                             onClick={() => removeBlock(index)}
-                            className="text-red-500 hover:text-red-700 p-1 bg-white dark:bg-gray-700  shadow"
+                            className="text-red-500 hover:text-red-700 p-1"
                         >
                             &times;
                         </button>
@@ -141,25 +145,27 @@ export default function TaskForm({ onSuccess, onClose, projectId, initialStatus 
                 <button
                     type="button"
                     onClick={addTextBlock}
-                    className="py-1 px-3 border rounded-md text-sm text-gray-500 hover:bg-gray-100"
+                    className="py-1 px-3 border rounded-md text-sm text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
                 >
                     + Texte
                 </button>
                 <button
                     type="button"
                     onClick={addTitleBlock}
-                    className="py-1 px-3 border rounded-md text-sm text-gray-500 hover:bg-gray-100"
+                    className="py-1 px-3 border rounded-md text-sm text-gray-500 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800"
                 >
                     + Titre
                 </button>
             </div>
 
-            <div className="fixed bottom-0 right-0 p-8">
+            {error && <p className="text-red-500">{error}</p>}
+
+            <div className="fixed bottom-0 right-0 p-8 bg-white dark:bg-gray-700 shadow-2xl w-full max-w-lg z-20">
                 <div className="flex justify-end space-x-2">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
                     >
                         Annuler
                     </button>
@@ -168,7 +174,7 @@ export default function TaskForm({ onSuccess, onClose, projectId, initialStatus 
                         disabled={loading}
                         className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                     >
-                        {loading ? 'Création...' : 'Créer la tâche'}
+                        {loading ? 'Sauvegarde...' : 'Sauvegarder'}
                     </button>
                 </div>
             </div>

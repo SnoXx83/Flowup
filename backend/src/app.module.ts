@@ -6,7 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { BlocsModule } from './blocs/blocs.module';
-import { BlocEntity } from './blocs/bloc.entity/bloc.entity';
+import { BlocEntity } from './blocs/blocs.entity/blocs.entity';
 import { TaskEntity } from './tasks/tasks.entity/tasks.entity';
 import { ProjectEntity } from './projects/projects.entity/project.entity';
 import { UserEntity } from './users/users.entity/user.entity';

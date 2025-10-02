@@ -1,22 +1,38 @@
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  project: {
+export interface Project {
     id: number;
-    name: string;
+    title: string;
     description: string;
-  };
 }
 
+export interface Bloc {
+    id?: number;
+    type: 'title' | 'text';
+    content: string;
+}
+
+export interface Task {
+    id: number;
+    title: string;
+    description: string;
+    status: string;
+    projectId: number; 
+    project: Project; 
+    blocs: Bloc[]; 
+    createdAt: string;
+}
+
+export interface TaskWithBlocs extends Task {}; 
+
 export interface KanbanColumn {
-  title: string;
-  tasks: Task[];
+    title: string;
+    tasks: Task[];
 }
 
 export interface KanbanState {
-  columns: {
-    [key: string]: KanbanColumn;
-  };
+    columns: { [key: string]: KanbanColumn };
+}
+
+export interface KanbanBoardProps {
+    initialTasks: Task[];
+    projectId: number;
 }

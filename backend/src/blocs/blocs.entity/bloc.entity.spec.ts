@@ -1,4 +1,4 @@
-import { BlocEntity } from './bloc.entity';
+import { BlocEntity } from './blocs.entity';
 
 describe('BlocEntity', () => {
   it('should be defined', () => {

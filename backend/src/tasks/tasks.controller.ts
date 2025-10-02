@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskEntity } from './tasks.entity/tasks.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UserEntity } from 'src/users/users.entity/user.entity';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 
 interface AuthenticatedRequest extends Request {
@@ -14,13 +15,18 @@ export class TasksController {
     constructor(private readonly tasksService: TasksService) { }
 
     @Get()
-    async findAll(): Promise<TaskEntity[]> {
+    async findAll() {
         return this.tasksService.findAll();
     }
 
     @Get('project/:projectId')
     async findTasksByProject(@Param('projectId') projectId: string): Promise<TaskEntity[]> {
         return this.tasksService.findTasksByProjectId(+projectId);
+    }
+
+    @Get(':id')
+    async findOne(@Param('id') id: number): Promise<TaskEntity> {
+        return this.tasksService.TaskById(id);
     }
 
     @Post(':projectId')
@@ -32,26 +38,15 @@ export class TasksController {
         return this.tasksService.create(createTaskDto, req.user, + projectId);
     }
 
+
     @Patch(':id')
-    async updateStatus(
-        @Param('id') id: string,
-        @Body('status') status: string,
-    ) {
-        return this.tasksService.updateTaskStatus(+id, status);
-    }
-
-
-    @Get(':id')
-    async readOne(@Param('id') id: number): Promise<TaskEntity> {
-        return this.tasksService.PageById(id);
-    }
-
-    @Put(':id')
     async update(
-        @Param('id') id: number, @Body() pageData: Partial<TaskEntity>
+        @Param('id') id: number,
+        @Body() pageData: UpdateTaskDto
     ): Promise<TaskEntity> {
         return this.tasksService.updateTask(id, pageData);
     }
+
 
     @Delete(':id')
     async delete(@Param('id') id: number) {

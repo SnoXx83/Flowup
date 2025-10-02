@@ -1,4 +1,4 @@
-import { BlocEntity } from "src/blocs/bloc.entity/bloc.entity";
+import { BlocEntity } from "src/blocs/blocs.entity/blocs.entity";
 import { ProjectEntity } from "src/projects/projects.entity/project.entity";
 import { UserEntity } from "src/users/users.entity/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
@@ -14,7 +14,6 @@ export class TaskEntity {
     @Column({ default: 'À faire' })
     status: string;
 
-    // Relation to the User who created the task
     @ManyToOne(() => UserEntity, user => user.tasks, { onDelete: 'CASCADE' })
     user: UserEntity;
 

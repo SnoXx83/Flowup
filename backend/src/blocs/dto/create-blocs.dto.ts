@@ -1,6 +1,5 @@
 import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
 
-// You can create an enum for block types for better type safety
 export enum BlocType {
   TEXT = 'text',
   TITLE = 'title',
@@ -18,5 +17,5 @@ export class CreateBlocDto {
 
   @IsOptional()
   @IsString()
-  url?: string; // For images or external content
+  url?: string; 
 }

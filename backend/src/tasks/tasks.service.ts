@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TaskEntity } from './tasks.entity/tasks.entity';
 import { Repository } from 'typeorm';
 import { ProjectEntity } from 'src/projects/projects.entity/project.entity';
-import { BlocEntity } from 'src/blocs/bloc.entity/bloc.entity';
+import { BlocEntity } from 'src/blocs/blocs.entity/blocs.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UserEntity } from 'src/users/users.entity/user.entity';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -18,6 +19,7 @@ export class TasksService {
         private blocsRepository: Repository<BlocEntity>,
     ) { }
 
+    // GET ALL Tasks
     async findAll(): Promise<TaskEntity[]> {
         const allPages = this.tasksRepository.find();
 
@@ -28,25 +30,33 @@ export class TasksService {
         return allPages;
     }
 
+    // GET Task by Id with blocs relations 
+    async TaskById(id: number): Promise<TaskEntity> {
+        return this.tasksRepository.findOneOrFail({
+            where: { id },
+            relations: ['blocs'],
+        });
+    }
+
+    // POST Task with blocs 
     async create(
         createTaskDto: CreateTaskDto,
         user: UserEntity,
         projectId: number): Promise<TaskEntity> {
-        const project= await this.projectsRepository.findOneBy({id: projectId});
-        
-        if(!project){
+
+        const project = await this.projectsRepository.findOneBy({ id: projectId });
+        if (!project) {
             throw new NotFoundException('Project not found');
         }
-
         const newTask = this.tasksRepository.create({
             ...createTaskDto,
             user: user,
             project: project,
         });
 
-        const savedTask= await this.tasksRepository.save(newTask);
+        const savedTask = await this.tasksRepository.save(newTask);
 
-        const newBlocs= createTaskDto.blocs.map(blocDto=>{
+        const newBlocs = createTaskDto.blocs.map(blocDto => {
             return this.blocsRepository.create({
                 ...blocDto,
                 task: savedTask,
@@ -54,55 +64,78 @@ export class TasksService {
         });
 
         await this.blocsRepository.save(newBlocs);
-    
+
+        const taskWithBlocs = await this.tasksRepository.findOne({
+            where: { id: savedTask.id },
+            relations: ['blocs'],
+        });
+
+        if (taskWithBlocs) {
+            return taskWithBlocs;
+        }
         return savedTask;
     }
 
 
-    async PageById(id: number): Promise<TaskEntity> {
-        const page = await this.tasksRepository.findOne({ where: { id } });
-
-        if (!page) {
-            throw new NotFoundException(`Page with ID "${id}" not found.`);
-        }
-
-        return page;
-    }
-
-
+    // GET ALL TASKS by the ProjectId
     async findTasksByProjectId(projectId: number): Promise<TaskEntity[]> {
-    return this.tasksRepository.find({ 
-      where: { project: { id: projectId } },
-      relations: ['project']
-    });
-  }
-
-    async updateTaskStatus(taskId: number, newStatus: string): Promise<TaskEntity> {
-    const task = await this.tasksRepository.findOneBy({ id: taskId });
-
-    if (!task) {
-      throw new NotFoundException(`Task with ID ${taskId} not found`);
+        return this.tasksRepository.find({
+            where: { project: { id: projectId } },
+            relations: ['project']
+        });
     }
 
-    task.status = newStatus;
-    
-    return this.tasksRepository.save(task);
-  }
 
-    async updateTask(id: number, pageData: Partial<TaskEntity>) {
-        const pageToUpdate = await this.tasksRepository.findOneBy({ id });
+    async updateTask(id: number, taskData: UpdateTaskDto): Promise<TaskEntity> {
+        const { blocs, ...taskSimpleData } = taskData;
 
-        if (!pageToUpdate) {
-            throw new NotFoundException("Page not found !");
+        if (Object.keys(taskSimpleData).length > 0) {
+            await this.tasksRepository.update(id, taskSimpleData);
         }
 
-        Object.assign(pageToUpdate, pageData);
+        if (blocs) {
+            const taskToUpdate = await this.TaskById(id);
+            const existingBlocs = taskToUpdate.blocs;
+            const taskRelation = { id: id };
+            const blocPromises: Promise<BlocEntity>[] = [];
+            const blocsToKeepIds = new Set(blocs.filter(b => b.id).map(b => b.id));
 
-        const updatePage = await this.tasksRepository.save(pageToUpdate);
+            for (const blocData of blocs) {
+                if (blocData.id) {
+                    const existingBloc = existingBlocs.find(b => b.id === blocData.id);
+                    if (existingBloc) {
+                        blocPromises.push(
+                            this.blocsRepository.save({
+                                ...existingBloc,
+                                ...blocData,
+                                task: taskRelation,
+                            })
+                        );
+                    }
+                } else {
+                    blocPromises.push(
+                        this.blocsRepository.save(this.blocsRepository.create({
+                            ...blocData,
+                            task: taskRelation,
+                        }))
+                    );
+                }
+            }
 
-        return updatePage;
+            await Promise.all(blocPromises);
+
+            const blocsToDelete = existingBlocs.filter(b => !blocsToKeepIds.has(b.id));
+
+            if (blocsToDelete.length > 0) {
+                await this.blocsRepository.remove(blocsToDelete);
+            }
+        }
+
+        return this.TaskById(id);
     }
 
+    
+    // DELETE Task by ID
     async deleteById(id: number): Promise<void> {
         const deletePage = await this.tasksRepository.delete(id);
         if (deletePage.affected === 0) {

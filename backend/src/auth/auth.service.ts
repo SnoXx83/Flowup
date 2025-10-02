@@ -15,7 +15,6 @@ export class AuthService {
         async validateUser(email: string): Promise<UserEntity | null> {
     const user = await this.usersService.findOneByEmail(email);
     
-    // Si l'utilisateur est trouvé, retournez-le, sinon retournez null.
     if (!user) {
       return null;
     }

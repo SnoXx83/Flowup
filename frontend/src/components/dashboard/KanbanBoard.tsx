@@ -1,196 +1,200 @@
 "use client";
 
-import api from '@/services/api';
 import { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, OnDragEndResponder, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { FaPlus, FaTrashAlt } from 'react-icons/fa';
 import Modal from '@/components/common/Modal';
-import TaskForm from '@/components/dashboard/TaskForm';
-import { KanbanColumn, KanbanState, Task } from '../types/kaban';
-import { FaTrashAlt } from 'react-icons/fa';
+import TaskForm from './TaskForm';
+import TaskEditForm from './TaskEditForm';
+import api from '@/services/api';
+import { Task, Bloc, KanbanBoardProps, TaskWithBlocs, KanbanState, KanbanColumn } from '../types/kaban';
+
 
 const columnStatuses = ['À faire', 'En cours', 'À recetter', 'Mise en production', 'Terminé'];
 
-interface KanbanBoardProps {
-  initialTasks: Task[];
-  projectId: number;
-}
-
 export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [kanbanState, setKanbanState] = useState<KanbanState>(() => {
+  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<string>('À faire');
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskWithBlocs | null>(null);
+  const [loadingTaskDetails, setLoadingTaskDetails] = useState(false);
+
+  // --- Fonctions d'Organisation ---
+  const organizeTasks = (tasks: Task[]): KanbanState => {
     const columns: { [key: string]: KanbanColumn } = {};
+
     columnStatuses.forEach(status => {
-      columns[status] = {
-        title: status,
-        tasks: [],
-      };
+      columns[status] = { title: status, tasks: [] };
     });
 
-    // Filtre les tâches par ID de projet avant de les organiser
-    const filteredTasks = initialTasks.filter(task => task.project?.id === projectId);
-
-    (filteredTasks ?? []).forEach(task => {
+    tasks.forEach(task => {
       if (columns[task.status]) {
         columns[task.status].tasks.push(task);
       }
     });
 
     return { columns };
-  });
+  };
 
-  // Met a jour l'etat quand la prop initialTasks ou projectId change
+  const [kanbanState, setKanbanState] = useState<KanbanState>(() => organizeTasks(initialTasks));
+
   useEffect(() => {
-    const columns: { [key: string]: KanbanColumn } = {};
-    columnStatuses.forEach(status => {
-      columns[status] = {
-        title: status,
-        tasks: [],
-      };
-    });
+    setKanbanState(organizeTasks(initialTasks));
+  }, [initialTasks]);
 
-    const filteredTasks = initialTasks.filter(task => task.project?.id === projectId);
 
-    (filteredTasks ?? []).forEach(task => {
-      if (columns[task.status]) {
-        columns[task.status].tasks.push(task);
+  const handleOpenCreationModal = (status: string) => {
+    setCurrentStatus(status);
+    setIsCreationModalOpen(true);
+  };
+
+  const handleCloseCreationModal = () => setIsCreationModalOpen(false);
+
+  const handleOpenEditModal = async (task: Task) => {
+    setLoadingTaskDetails(true);
+    setSelectedTask(null);
+
+    try {
+      const taskId = typeof task.id === 'string' ? parseInt(task.id) : task.id;
+
+      const response = await api.get<TaskWithBlocs>(`/tasks/${taskId}`);
+
+      setSelectedTask(response.data);
+      setIsEditModalOpen(true);
+
+    } catch (error) {
+      console.error("Échec du chargement des blocs de la tâche:", error);
+    } finally {
+      setLoadingTaskDetails(false);
+    }
+  };
+
+
+  const handleCloseEditModal = () => {
+    setSelectedTask(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleTaskUpdate = (updatedTask: Task) => {
+    setKanbanState(prevState => {
+      const newColumns = { ...prevState.columns };
+
+      let oldStatus = updatedTask.status;
+
+      for (const status of columnStatuses) {
+        const taskIndex = newColumns[status].tasks.findIndex(t => t.id === updatedTask.id);
+        if (taskIndex > -1) {
+          oldStatus = status;
+          if (oldStatus !== updatedTask.status) {
+            newColumns[oldStatus].tasks.splice(taskIndex, 1);
+          }
+          break;
+        }
       }
+
+      const targetColumn = newColumns[updatedTask.status];
+      const existingIndex = targetColumn.tasks.findIndex(t => t.id === updatedTask.id);
+
+      if (existingIndex > -1) {
+        targetColumn.tasks[existingIndex] = updatedTask;
+      } else {
+        targetColumn.tasks.push(updatedTask);
+      }
+
+      return { columns: newColumns };
     });
+    handleCloseEditModal();
+  };
 
-    setKanbanState({ columns });
-  }, [initialTasks, projectId]);
+  const handleTaskDeletion = async (taskId: number) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?")) return;
 
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      setKanbanState(prevState => {
+        const newColumns = { ...prevState.columns };
+        for (const status in newColumns) {
+          const tasks = newColumns[status].tasks;
+          const index = tasks.findIndex(task => task.id === taskId);
+          if (index > -1) {
+            tasks.splice(index, 1);
+            break;
+          }
+        }
+        return { columns: newColumns };
+      });
+    } catch (error) {
+      console.error("Échec de la suppression de la tâche:", error);
+    }
+  };
 
 
   const handleTaskCreation = (newTask: Task) => {
     setKanbanState(prevState => {
-      const startColumn = prevState.columns[newTask.status] || prevState.columns[columnStatuses[0]];
-      const newTasks = [newTask, ...startColumn.tasks];
-      return {
-        columns: {
-          ...prevState.columns,
-          [startColumn.title]: {
-            ...startColumn,
-            tasks: newTasks,
-          },
-        },
-      };
+      const newState = { ...prevState };
+      newState.columns[newTask.status].tasks.push(newTask);
+      return newState;
     });
-  };
-
-  const handleTaskDeletion = async (taskId: string | number) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?")) {
-      return;
-    }
-
-    try {
-      await api.delete(`/tasks/${taskId}`);
-
-      // Mettez à jour l'état en filtrant la tâche supprimée
-      setKanbanState(prevState => {
-        const newColumns = { ...prevState.columns };
-        for (const status in newColumns) {
-          newColumns[status].tasks = newColumns[status].tasks.filter(task => task.id !== taskId);
-        }
-        return { columns: newColumns };
-      });
-
-    } catch (error) {
-      console.error("Échec de la suppression de la tâche :", error);
-    }
+    setIsCreationModalOpen(false);
   };
 
 
-  const onDragEnd: OnDragEndResponder = async (result: DropResult) => {
+
+
+
+  const onDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
-    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
-      return;
-    }
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
     const start = kanbanState.columns[source.droppableId];
-    const originalState = { ...kanbanState };
+    const end = kanbanState.columns[destination.droppableId];
+    const draggableTask = start.tasks.find(task => task.id.toString() === draggableId);
 
-    if (source.droppableId === destination.droppableId) {
-      const newTasks = Array.from(start.tasks);
-      const [movedTask] = newTasks.splice(source.index, 1);
-      newTasks.splice(destination.index, 0, movedTask);
+    if (!draggableTask) return;
 
-      const newColumn = {
-        ...start,
-        tasks: newTasks,
-      };
+    const newKanbanState = JSON.parse(JSON.stringify(kanbanState));
 
-      setKanbanState(prevState => ({
-        columns: {
-          ...prevState.columns,
-          [newColumn.title]: newColumn,
-        },
-      }));
-      return;
+    newKanbanState.columns[source.droppableId].tasks.splice(source.index, 1);
+
+    if (start !== end) {
+      draggableTask.status = destination.droppableId;
+      api.patch(`/tasks/${draggableTask.id}`, { status: destination.droppableId })
+        .catch(err => console.error("Échec de la mise à jour du statut:", err));
     }
 
+    newKanbanState.columns[destination.droppableId].tasks.splice(destination.index, 0, draggableTask);
 
-    const finish = kanbanState.columns[destination.droppableId];
-    const startTasks = Array.from(start.tasks);
-    const finishTasks = Array.from(finish.tasks);
-
-    const [movedTask] = startTasks.splice(source.index, 1);
-    if (!movedTask) {
-      return;
-    }
-
-    finishTasks.splice(destination.index, 0, movedTask);
-
-    setKanbanState(prevState => ({
-      columns: {
-        ...prevState.columns,
-        [start.title]: { ...start, tasks: startTasks },
-        [finish.title]: { ...finish, tasks: finishTasks },
-      },
-    }));
-
-    if (movedTask) {
-      try {
-        await api.patch(`/tasks/${movedTask.id}`, { status: destination.droppableId });
-      } catch (error) {
-        console.error("Failed to update task status:", error);
-        setKanbanState(originalState);
-      }
-    }
+    setKanbanState(newKanbanState);
   };
 
-  const [currentStatus, setCurrentStatus] = useState<string>('À faire');
-
-  const handleOpenModal = (status: string) => {
-    setCurrentStatus(status);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex space-x-4 p-4">
+        <div className="flex space-x-4 overflow-x-auto p-4">
           {columnStatuses.map(status => (
-            <Droppable key={status} droppableId={status} >
+            <Droppable key={status} droppableId={status}>
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="dark:bg-gray-800 border border-gray-700 p-4 rounded-lg flex-shrink-0 w-72 h-full min-h-[500px]"
+                  className="flex-shrink-0 w-80 p-4 rounded-xl bg-gray-100 dark:bg-gray-800 shadow-inner"
                 >
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{status}</h2>
-                    {/* {status === 'À faire' && ( */}
-                    <button onClick={() => handleOpenModal(status)} className="text-gray-500 hover:text-gray-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
+                    <button
+                      onClick={() => handleOpenCreationModal(status)}
+                      className="text-gray-500 hover:text-blue-500 transition duration-150"
+                      title="Créer une nouvelle tâche"
+                    >
+                      <FaPlus key={status} />
                     </button>
-                    {/* )} */}
                   </div>
+
                   {kanbanState.columns?.[status]?.tasks.map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
                       {(provided) => (
@@ -198,20 +202,30 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="bg-white border border-gray-900 dark:bg-gray-700 p-4 rounded-lg shadow-md mb-3 cursor-grab text-gray-900 dark:text-gray-50 transition-transform hover:scale-105 group"
+                          onClick={(e) => {
+                            const clickedElement = e.target as HTMLElement;
+                            if (clickedElement.closest('button')) {
+                              e.stopPropagation();
+                              return;
+                            }
+                            handleOpenEditModal(task);
+                          }}
+                          className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-xl shadow-black/30 mb-3 cursor-pointer text-gray-900 dark:text-gray-50 transition-transform hover:scale-[1.02] group relative"
                         >
-                          <div className="flex justify-between">
-                            <h3 className="font-medium">{task.title}</h3>
-                            <div className='group-hover:block '>
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium break-words whitespace-normal mr-4">{task.title}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{task.description}</p>
+                            <div className="absolute top-2 right-2 hidden group-hover:block z-10">
                               <button
                                 onClick={() => handleTaskDeletion(task.id)}
-                                className="text-gray-400"
+                                className="text-red-500 hover:text-red-700 focus:outline-none p-1"
+                                title="Supprimer la tâche"
                               >
                                 <FaTrashAlt />
                               </button>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{task.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{task.description}</p>
                         </div>
                       )}
                     </Draggable>
@@ -223,14 +237,31 @@ export default function KanbanBoard({ initialTasks, projectId }: KanbanBoardProp
           ))}
         </div>
       </DragDropContext>
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Créer une nouvelle tâche">
+      <Modal isOpen={isCreationModalOpen} onClose={handleCloseCreationModal} title={`Créer une tâche dans "${currentStatus}"`}>
         <TaskForm
           onSuccess={handleTaskCreation}
-          onClose={handleCloseModal}
+          onClose={handleCloseCreationModal}
           projectId={projectId}
           initialStatus={currentStatus}
         />
       </Modal>
+
+      {selectedTask && (
+        <Modal isOpen={isEditModalOpen} onClose={handleCloseEditModal} title={selectedTask ? `Éditer: ${selectedTask.title}` : 'Chargement...'}>
+          {loadingTaskDetails && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              Chargement des détails de la tâche...
+            </div>
+          )}
+          {selectedTask && !loadingTaskDetails && (
+            <TaskEditForm
+              task={selectedTask}
+              onUpdate={handleTaskUpdate}
+              onClose={handleCloseEditModal}
+            />
+          )}
+        </Modal>
+      )}
     </>
   );
 }

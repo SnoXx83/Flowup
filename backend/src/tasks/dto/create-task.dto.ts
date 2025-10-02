@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreateBlocDto } from 'src/blocs/dto/create-bloc.dto';
+import { CreateBlocDto } from 'src/blocs/dto/create-blocs.dto';
 
 
 export class CreateTaskDto {

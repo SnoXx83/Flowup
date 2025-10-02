@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { BlocsService } from './blocs.service';
-import { BlocEntity } from './bloc.entity/bloc.entity';
+import { BlocEntity } from './blocs.entity/blocs.entity';
 
 @Controller('blocs')
 export class BlocsController {
